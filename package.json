@@ -1,0 +1,26 @@
+{
+  "name": "drg-music2",
+  "version": "1.0.0",
+  "description": "Updated version of drg-music.",
+  "main": "music.js",
+  "dependencies": {
+    "discord.js": "^11.3.0",
+    "fs": "0.0.1-security",
+    "musicmetadata": "^2.0.5",
+    "youtube-search": "^1.0.10",
+    "ytdl-core": "^0.18.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dragoteryx/drg-music2.git"
+  },
+  "author": "Dragoteryx",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Dragoteryx/drg-music2/issues"
+  },
+  "homepage": "https://github.com/Dragoteryx/drg-music2#readme"
+}
