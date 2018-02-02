@@ -98,8 +98,6 @@ class MusicError extends Error {
 class MusicHandler extends EventEmitter {
 	constructor(client) {
 		super();
-		if (!(client instanceof discord.Client))
-			throw new TypeError("you need to specify a Discord Client");
 		client.music = this;
 		client.on("voiceStateUpdate", (oldMember, newMember) => {
 			let musicChannel = newMember.guild.me.voiceChannel;
@@ -146,33 +144,32 @@ class MusicHandler extends EventEmitter {
 	}
 	join(member) {
 		let that = prv(this);
-		if (this.isConnected(member.guild))
-			return Promise.reject(new MusicError("clientAlreadyInAVoiceChannel"));
-		if (member.voiceChannel === undefined)
-			return Promise.reject(new MusicError("memberNotInAVoiceChannel"));
-		if (!member.voiceChannel.joinable)
-			return Promise.reject(new MusicError("voiceChannelNotJoinable"));
-		if (!member.voiceChannel.speakable)
-			return Promise.reject(new MusicError("voiceChannelNotSpeakable"));
-		if (member.voiceChannel.full)
-			return Promise.reject(new MusicError("voiceChannelFull"));
-		let playlist = new Playlist(member.guild, that.client, this);
-		member.guild.playlist = playlist.simplified;
-		that.playlists.set(member.guild.id, {playlist: playlist, guild: member.guild});
-		that.playlists.get(member.guild.id).playlist.on("start", (guild, music) => {
-			this.emit("start", that.playlists.get(member.guild.id).playlist.simplified, music);
-			this.emit("start" + guild.id);
+		return new Promise((resolve, reject) => {
+			if (this.isConnected(member.guild)) reject(new MusicError("clientAlreadyInAVoiceChannel"));
+			else if (member.voiceChannel === undefined) reject(new MusicError("memberNotInAVoiceChannel"));
+			else if (!member.voiceChannel.joinable) reject(new MusicError("voiceChannelNotJoinable"));
+			else if (!member.voiceChannel.speakable) reject(new MusicError("voiceChannelNotSpeakable"));
+			else if (member.voiceChannel.full) reject(new MusicError("voiceChannelFull"));
+			else {
+				let playlist = new InternalPlaylist(member.guild, that.client, this);
+				member.guild.playlist = playlist.simplified;
+				that.playlists.set(member.guild.id, {playlist: playlist, guild: member.guild});
+				that.playlists.get(member.guild.id).playlist.on("start", (guild, music) => {
+					this.emit("start", that.playlists.get(member.guild.id).playlist.simplified, music);
+					this.emit("start" + member.guild.id);
+				});
+				that.playlists.get(member.guild.id).playlist.on("next", (guild, music) => {
+					this.emit("next", that.playlists.get(member.guild.id).playlist.simplified, music);
+				});
+				that.playlists.get(member.guild.id).playlist.on("empty", guild => {
+					this.emit("empty", that.playlists.get(member.guild.id).playlist.simplified);
+				});
+				that.playlists.get(member.guild.id).playlist.on("end", (guild, music) => {
+					this.emit("end", that.playlists.get(member.guild.id).playlist.simplified, music);
+				});
+				resolve(member.voiceChannel.join());
+			}
 		});
-		that.playlists.get(member.guild.id).playlist.on("next", (guild, music) => {
-			this.emit("next", that.playlists.get(member.guild.id).playlist.simplified, music);
-		});
-		that.playlists.get(member.guild.id).playlist.on("empty", guild => {
-			this.emit("empty", that.playlists.get(member.guild.id).playlist.simplified);
-		});
-		that.playlists.get(member.guild.id).playlist.on("end", (guild, music) => {
-			this.emit("end", that.playlists.get(member.guild.id).playlist.simplified, music);
-		});
-		return member.voiceChannel.join();
 	}
 	leave(guild) {
 		let that = prv(this);
@@ -266,12 +263,11 @@ class MusicHandler extends EventEmitter {
 			if (!this.isConnected(guild)) reject(new MusicError("clientNotInAVoiceChannel"));
 			else if (!this.isPlaying(guild)) reject(new MusicError("clientNotPlaying"));
 			else {
-				this.currentInfo(guild).then(current => {
-					that.playlists.get(guild.id).playlist.looping = false;
-					that.playlists.get(guild.id).playlist.paused = false;
-					that.playlists.get(guild.id).playlist.dispatcher.end("playnext");
-					resolve(that.playlists.get(guild.id).playlist.current.info);
-				});
+				let current = this.currentInfo(guild);
+				that.playlists.get(guild.id).playlist.looping = false;
+				that.playlists.get(guild.id).playlist.paused = false;
+				that.playlists.get(guild.id).playlist.dispatcher.end("playnext");
+				resolve(current);
 			}
 		});
 	}
@@ -418,7 +414,7 @@ class MusicHandler extends EventEmitter {
 	}
 }
 
-class SimplifiedPlaylist {
+class Playlist {
 	constructor(handler, playlist) {
 		prv(this).handler = handler;
 		prv(this).playlist = playlist;
@@ -489,15 +485,15 @@ class SimplifiedPlaylist {
 	get info() {
 		return prv(this).handler.playlistInfo(prv(this).playlist.guild);
 	}
-	get createdAt() {
-		return prv(this).playlist.createdAt;
+	get joinedAt() {
+		return new Date(prv(this).playlist.joinedTimestamp);
 	}
-	get createdTimestamp() {
-		return prv(this).playlist.createdTimestamp;
+	get JoinedTimestamp() {
+		return prv(this).playlist.joinedTimestamp;
 	}
 }
 
-class Playlist extends EventEmitter {
+class InternalPlaylist extends EventEmitter {
 	constructor(guild, client, handler) {
 		super();
 		this.guild = guild;
@@ -510,11 +506,11 @@ class Playlist extends EventEmitter {
 		this.volume = 100;
 		this.leaving = false;
 		this.handler = handler;
-		this.createdAt = new Date();
-		this.createdTimestamp = Date.now();
+		this.joinedTimestamp = Date.now();
+
 	}
 	get simplified() {
-		return new SimplifiedPlaylist(this.handler, this);
+		return new Playlist(this.handler, this);
 	}
 	async addMusic(music) {
 		this.list.push(music);
