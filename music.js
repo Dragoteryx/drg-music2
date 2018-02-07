@@ -25,7 +25,7 @@ function videoWebsite(str) {
 		return "Dailymotion";
 	else if (str.startsWith("http://www.nicovideo.jp/watch/") || str.startsWith("http://nico.ms/"))
 		return "NicoNicoVideo";*/
-	else throw new MusicError("unknownOrNotSupportedVideoWebsite");
+	else return undefined;
 }
 
 function playYoutube(voiceConnection, link, passes) {
@@ -39,7 +39,7 @@ function queryYoutube(query, apiKey) {
 			else if (res[0] !== undefined)
 				resolve(res.shift().link);
 			else
-				reject(new Error("noResults"));
+				resolve(undefined);
 		});
 	});
 }
@@ -95,10 +95,20 @@ class MusicError extends Error {
 	}
 }
 
+class DeprecationWarning extends Error {
+	constructor(message) {
+		super(message);
+	}
+}
+
 class MusicHandler extends EventEmitter {
 	constructor(client) {
 		super();
-		client.music = this;
+		if (client === undefined)
+			throw new Error("parameter 'client' is undefined");
+		if (!(client instanceof discord.Client))
+			throw new TypeError("'client' must be a Discord Client");
+		client.musicHandler = this;
 		client.on("voiceStateUpdate", (oldMember, newMember) => {
 			let musicChannel = newMember.guild.me.voiceChannel;
 			if (musicChannel === undefined) return;
@@ -142,39 +152,49 @@ class MusicHandler extends EventEmitter {
 			playlists.set(id, that.playlists.get(id).playlist.simplified);
 		return playlists;
 	}
-	join(member) {
+	join(tojoin) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
-			if (this.isConnected(member.guild)) reject(new MusicError("clientAlreadyInAVoiceChannel"));
-			else if (member.voiceChannel === undefined) reject(new MusicError("memberNotInAVoiceChannel"));
-			else if (!member.voiceChannel.joinable) reject(new MusicError("voiceChannelNotJoinable"));
-			else if (!member.voiceChannel.speakable) reject(new MusicError("voiceChannelNotSpeakable"));
-			else if (member.voiceChannel.full) reject(new MusicError("voiceChannelFull"));
+			if (tojoin === undefined) reject(new Error("parameter 'tojoin' is undefined"));
+			let voiceChannel;
+			if (tojoin instanceof discord.GuildMember)
+				voiceChannel = tojoin.voiceChannel
+			else if (tojoin instanceof discord.VoiceChannel)
+				voiceChannel = tojoin;
+			else
+				reject(new TypeError("'tojoin' must be a Discord GuildMember or VoiceChannel"));
+			if (voiceChannel === undefined) reject(new MusicError("this member is not in a voice channel"));
+			else if (this.isConnected(voiceChannel.guild)) reject(new MusicError("the client already joined a voice channel in this guild"));
+			else if (!voiceChannel.joinable) reject(new MusicError("the client can't join this voice channel"));
+			else if (!voiceChannel.speakable) reject(new MusicError("the client is not authorized to speak in this channel"));
+			else if (voiceChannel.full) reject(new MusicError("this voice channel is full"));
 			else {
-				let playlist = new InternalPlaylist(member.guild, that.client, this);
-				member.guild.playlist = playlist.simplified;
-				that.playlists.set(member.guild.id, {playlist: playlist, guild: member.guild});
-				that.playlists.get(member.guild.id).playlist.on("start", (guild, music) => {
-					this.emit("start", that.playlists.get(member.guild.id).playlist.simplified, music);
-					this.emit("start" + member.guild.id);
+				let playlist = new InternalPlaylist(voiceChannel.guild, that.client, this);
+				voiceChannel.guild.playlist = playlist.simplified;
+				that.playlists.set(voiceChannel.guild.id, {playlist: playlist, guild: voiceChannel.guild});
+				that.playlists.get(voiceChannel.guild.id).playlist.on("start", (guild, music) => {
+					this.emit("start", that.playlists.get(voiceChannel.guild.id).playlist.simplified, music);
+					this.emit("start" + voiceChannel.guild.id);
 				});
-				that.playlists.get(member.guild.id).playlist.on("next", (guild, music) => {
-					this.emit("next", that.playlists.get(member.guild.id).playlist.simplified, music);
+				that.playlists.get(voiceChannel.guild.id).playlist.on("next", (guild, music) => {
+					this.emit("next", that.playlists.get(voiceChannel.guild.id).playlist.simplified, music);
 				});
-				that.playlists.get(member.guild.id).playlist.on("empty", guild => {
-					this.emit("empty", that.playlists.get(member.guild.id).playlist.simplified);
+				that.playlists.get(voiceChannel.guild.id).playlist.on("empty", guild => {
+					this.emit("empty", that.playlists.get(voiceChannel.guild.id).playlist.simplified);
 				});
-				that.playlists.get(member.guild.id).playlist.on("end", (guild, music) => {
-					this.emit("end", that.playlists.get(member.guild.id).playlist.simplified, music);
+				that.playlists.get(voiceChannel.guild.id).playlist.on("end", (guild, music) => {
+					this.emit("end", that.playlists.get(voiceChannel.guild.id).playlist.simplified, music);
 				});
-				resolve(member.voiceChannel.join());
+				resolve(voiceChannel.join());
 			}
 		});
 	}
 	leave(guild) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
-			if (!this.isConnected(guild)) reject(new MusicError("clientNotInAVoiceChannel"));
+			if (guild === undefined) reject(new Error("parameter 'guild' is undefined"));
+			else if (!(guild instanceof discord.Guild)) reject(new TypeError("'guild' must be a Discord Guild"));
+			else if (!this.isConnected(guild)) reject(new MusicError("the client is not in a voice channel"));
 			else {
 				guild.playlist = undefined;
 				that.playlists.get(guild.id).playlist.leaving = true;
@@ -188,48 +208,50 @@ class MusicHandler extends EventEmitter {
 	addMusic(request, member, options) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
-      if (!this.isConnected(member.guild))
-				reject(new MusicError("clientNotInAVoiceChannel"));
+			if (request === undefined) reject(new Error("parameter 'request' is undefined"));
+			else if (typeof request != "string") reject(new TypeError("'guild' must be a String"));
+			else if (member === undefined) reject(new Error("parameter 'member' is undefined"));
+			else if (!(member instanceof discord.GuildMember)) reject(new TypeError("'member' must be a Discord GuildMember"));
+      else if (!this.isConnected(member.guild)) reject(new MusicError("the client is not in a voice channel"));
 			else {
 		    if (options === undefined) options = {};
 		    if (options.type === undefined) options.type = "link";
 		    if (options.passes === undefined) options.passes = 1;
 		    if (options.type == "link") {
-					try {
-						let website = videoWebsite(request);
-						if (website == "Youtube") {
-							youtubeInfo(request).then(info => {
-								let music = new Music(request, member, options.passes, false);
-				        music.title = info.title;
-								music.description = info.description;
-								music.author = {
-									name: info.author.name,
-									avatarURL: info.author.avatarURL,
-									channelURL: info.author.channelURL
-								}
-								music.thumbnailURL = info.thumbnailURL;
-								music.length = info.length;
-								music.keywords = info.keywords;
-				        if (options.props !== undefined)
-									music.props = options.props;
-								that.playlists.get(member.guild.id).playlist.addMusic(music);
-								resolve(music.info);
-							}).catch(err => {
-								if (err.message.includes("TypeError: Video id (") && err.message.includes(") does not match expected format (/^[a-zA-Z0-9-_]{11}$/)"))
-									reject(new MusicError("invalidYoutubeLink"));
-								else if (err.message == "This video is unavailable.")
-									reject(new MusicError("unavailableYoutubeVideo"));
-								else
-									reject(err)
-							});
-						}
-					} catch(err) {
-						reject(err);
+					let website = videoWebsite(request);
+					if (website === undefined) reject(new MusicError("this website is not supported"));
+					else if (website == "Youtube") {
+						youtubeInfo(request).then(info => {
+							let music = new Music(request, member, options.passes, false);
+			        music.title = info.title;
+							music.description = info.description;
+							music.author = {
+								name: info.author.name,
+								avatarURL: info.author.avatarURL,
+								channelURL: info.author.channelURL
+							}
+							music.thumbnailURL = info.thumbnailURL;
+							music.length = info.length;
+							music.keywords = info.keywords;
+			        if (options.props !== undefined)
+								music.props = options.props;
+							that.playlists.get(member.guild.id).playlist.addMusic(music);
+							resolve(music.info);
+						}).catch(err => {
+							if (err.message.includes("TypeError: Video id (") && err.message.includes(") does not match expected format (/^[a-zA-Z0-9-_]{11}$/)"))
+								reject(new MusicError("this Youtube link is invalid"));
+							else if (err.message == "This video is unavailable.")
+								reject(new MusicError("this video is unavailable"));
+							else
+								reject(err);
+						});
 					}
 		    } else if (options.type == "ytquery") {
-					if (options.apiKey === undefined) reject(new MusicError("to use 'ytquery' you need to specify a Youtube API Key"));
+					if (options.apiKey === undefined) reject(new Error("parameter 'options.apiKey' is undefined"));
+					else if (typeof options.apiKey != "string") reject(new TypeError("'options.apiKey' must be a String"));
 					else {
 						queryYoutube(request, options.apiKey).then(link => {
+							if (link === undefined) reject(new MusicError("no query results"));
 							options.type = "link";
 							resolve(this.addMusic(link, member, options));
 						}).catch(reject);
@@ -250,18 +272,24 @@ class MusicHandler extends EventEmitter {
 	removeMusic(guild, index) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
-			if (!this.isConnected(guild)) reject(new MusicError("clientNotInAVoiceChannel"));
-			else if (!this.isPlaying(guild)) reject(new MusicError("clientNotPlaying"));
-			else if (index < 0) reject(new MusicError("invalidMusicIndex"));
-			else if (index >= that.playlists.get(guild.id).playlist.list.length) reject(new MusicError("invalidMusicIndex"));
+			if (guild === undefined) reject(new Error("parameter 'guild' is undefined"));
+			else if (!(guild instanceof discord.Guild)) reject(new TypeError("'guild' must be a Discord Guild"));
+			else if (index === undefined) reject(new Error("parameter 'index' is undefined"));
+			else if (typeof index != "number") reject(new TypeError("'guild' must be a Number"));
+			else if (!this.isConnected(guild)) reject(new MusicError("the client is not in a voice channel"));
+			else if (!this.isPlaying(guild)) reject(new MusicError("the client is not playing"));
+			else if (index < 0) reject(new MusicError("invalid music index"));
+			else if (index >= that.playlists.get(guild.id).playlist.list.length) reject(new MusicError("invalid music index"));
 			else resolve(that.playlists.get(guild.id).playlist.list.splice(index, 1)[0].info);
 		});
 	}
 	playNext(guild) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
-			if (!this.isConnected(guild)) reject(new MusicError("clientNotInAVoiceChannel"));
-			else if (!this.isPlaying(guild)) reject(new MusicError("clientNotPlaying"));
+			if (guild === undefined) reject(new Error("parameter 'guild' is undefined"));
+			else if (!(guild instanceof discord.Guild)) reject(new TypeError("'guild' must be a Discord Guild"));
+			else if (!this.isConnected(guild)) reject(new MusicError("the client is not in a voice channel"));
+			else if (!this.isPlaying(guild)) reject(new MusicError("the client is not playing"));
 			else {
 				let current = this.currentInfo(guild);
 				that.playlists.get(guild.id).playlist.looping = false;
@@ -274,8 +302,10 @@ class MusicHandler extends EventEmitter {
 	toggleLooping(guild) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
-			if (!this.isConnected(guild)) reject(new MusicError("clientNotInAVoiceChannel"));
-			else if (!this.isPlaying(guild)) reject(new MusicError("clientNotPlaying"));
+			if (guild === undefined) reject(new Error("parameter 'guild' is undefined"));
+			else if (!(guild instanceof discord.Guild)) reject(new TypeError("'guild' must be a Discord Guild"));
+			else if (!this.isConnected(guild)) reject(new MusicError("the client is not in a voice channel"));
+			else if (!this.isPlaying(guild)) reject(new MusicError("the client is not playing"));
 			else {
 				let playlist = that.playlists.get(guild.id).playlist;
 				playlist.pllooping = false;
@@ -287,7 +317,9 @@ class MusicHandler extends EventEmitter {
 	togglePlaylistLooping(guild) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
-			if (!this.isConnected(guild)) reject(new MusicError("clientNotInAVoiceChannel"));
+			if (guild === undefined) reject(new Error("parameter 'guild' is undefined"));
+			else if (!(guild instanceof discord.Guild)) reject(new TypeError("'guild' must be a Discord Guild"));
+			else if (!this.isConnected(guild)) reject(new MusicError("the client is not in a voice channel"));
 			else {
 				let playlist = that.playlists.get(guild.id).playlist;
 				playlist.looping = false;
@@ -299,8 +331,10 @@ class MusicHandler extends EventEmitter {
 	clearPlaylist(guild) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
-			if (!this.isConnected(guild)) reject(new MusicError("clientNotInAVoiceChannel"));
-			else if (!this.isPlaying(guild)) reject(new MusicError("clientNotPlaying"));
+			if (guild === undefined) reject(new Error("parameter 'guild' is undefined"));
+			else if (!(guild instanceof discord.Guild)) reject(new TypeError("'guild' must be a Discord Guild"));
+			else if (!this.isConnected(guild)) reject(new MusicError("the client is not in a voice channel"));
+			else if (!this.isPlaying(guild)) reject(new MusicError("the client is not playing"));
 			else {
 				let nb = that.playlists.get(guild.id).playlist.list.length;
 				that.playlists.get(guild.id).playlist.list = [];
@@ -311,9 +345,11 @@ class MusicHandler extends EventEmitter {
 	shufflePlaylist(guild) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
-			if (!this.isConnected(guild)) reject(new MusicError("clientNotInAVoiceChannel"));
-			else if (!this.isPlaying(guild)) reject(new MusicError("clientNotPlaying"));
-			else if (that.playlists.get(guild.id).playlist.list.length == 0) reject(new MusicError("emptyPlaylist"));
+			if (guild === undefined) reject(new Error("parameter 'guild' is undefined"));
+			else if (!(guild instanceof discord.Guild)) reject(new TypeError("'guild' must be a Discord Guild"));
+			else if (!this.isConnected(guild)) reject(new MusicError("the client is not in a voice channel"));
+			else if (!this.isPlaying(guild)) reject(new MusicError("the client is not playing"));
+			else if (that.playlists.get(guild.id).playlist.list.length == 0) reject(new MusicError("the playlist is empty"));
 			else {
 				that.playlists.get(guild.id).playlist.list.sort(() => Math.random() - 0.5);
 				resolve();
@@ -323,8 +359,10 @@ class MusicHandler extends EventEmitter {
 	resume(guild) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
-			if (!this.isConnected(guild)) reject(new MusicError("clientNotInAVoiceChannel"));
-			else if (!this.isPlaying(guild)) reject(new MusicError("clientNotPlaying"));
+			if (guild === undefined) reject(new Error("parameter 'guild' is undefined"));
+			else if (!(guild instanceof discord.Guild)) reject(new TypeError("'guild' must be a Discord Guild"));
+			else if (!this.isConnected(guild)) reject(new MusicError("the client is not in a voice channel"));
+			else if (!this.isPlaying(guild)) reject(new MusicError("the client is not playing"));
 			else if (!this.isPaused(guild)) reject(new MusicError("musicNotPaused"));
 			else {
 				that.playlists.get(guild.id).playlist.dispatcher.resume();
@@ -336,8 +374,10 @@ class MusicHandler extends EventEmitter {
 	pause(guild) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
-			if (!this.isConnected(guild)) reject(new MusicError("clientNotInAVoiceChannel"));
-			else if (!this.isPlaying(guild)) reject(new MusicError("clientNotPlaying"));
+			if (guild === undefined) reject(new Error("parameter 'guild' is undefined"));
+			else if (!(guild instanceof discord.Guild)) reject(new TypeError("'guild' must be a Discord Guild"));
+			else if (!this.isConnected(guild)) reject(new MusicError("the client is not in a voice channel"));
+			else if (!this.isPlaying(guild)) reject(new MusicError("the client is not playing"));
 			else if (this.isPaused(guild)) reject(new MusicError("musicAlreadyPaused"));
 			else {
 				that.playlists.get(guild.id).playlist.dispatcher.pause();
@@ -349,8 +389,10 @@ class MusicHandler extends EventEmitter {
 	togglePaused(guild) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
-			if (!this.isConnected(guild)) reject(new MusicError("clientNotInAVoiceChannel"));
-			else if (!this.isPlaying(guild)) reject(new MusicError("clientNotPlaying"));
+			if (guild === undefined) reject(new Error("parameter 'guild' is undefined"));
+			else if (!(guild instanceof discord.Guild)) reject(new TypeError("'guild' must be a Discord Guild"));
+			else if (!this.isConnected(guild)) reject(new MusicError("the client is not in a voice channel"));
+			else if (!this.isPlaying(guild)) reject(new MusicError("the client is not playing"));
 			else {
 				that.playlists.get(guild.id).playlist.paused = !that.playlists.get(guild.id).playlist.paused;
 				if (that.playlists.get(guild.id).playlist.paused)
@@ -364,7 +406,11 @@ class MusicHandler extends EventEmitter {
 	setVolume(guild, volume) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
-			if (!this.isConnected(guild)) reject(new MusicError("clientNotInAVoiceChannel"));
+			if (guild === undefined) reject(new Error("parameter 'guild' is undefined"));
+			else if (!(guild instanceof discord.Guild)) reject(new TypeError("'guild' must be a Discord Guild"));
+			else if (volume === undefined) reject(new Error("parameter 'volume' is undefined"));
+			else if (typeof volume != "number") reject(new TypeError("'volume' must be a Number"));
+			else if (!this.isConnected(guild)) reject(new MusicError("the client is not in a voice channel"));
 			else if (volume < 0) reject(new MusicError("invalidVolume"));
 			else {
 				let old = this.getVolume(guild);
@@ -378,22 +424,30 @@ class MusicHandler extends EventEmitter {
 
 	//------------
 	isConnected(guild) {
+		if (guild === undefined) throw new Error("parameter 'guild' is undefined");
+		else if (!(guild instanceof discord.Guild)) throw new TypeError("'guild' must be a Discord Guild");
 		return prv(this).playlists.has(guild.id);
 	}
 	isPlaying(guild) {
 		let that = prv(this);
+		if (guild === undefined) throw new Error("parameter 'guild' is undefined");
+		if (!(guild instanceof discord.Guild)) throw new TypeError("'guild' must be a Discord Guild");
 		if (!this.isConnected(guild))
 			return false;
 		return that.playlists.get(guild.id).playlist.playing;
 	}
 	isPaused(guild) {
 		let that = prv(this);
+		if (guild === undefined) throw new Error("parameter 'guild' is undefined");
+		if (!(guild instanceof discord.Guild)) throw new TypeError("'guild' must be a Discord Guild");
 		if (!this.isPlaying(guild))
 			return false;
 		return that.playlists.get(guild.id).playlist.paused;
 	}
 	currentInfo(guild) {
 		let that = prv(this);
+		if (guild === undefined) throw new Error("parameter 'guild' is undefined");
+		if (!(guild instanceof discord.Guild)) throw new TypeError("'guild' must be a Discord Guild");
 		if (!this.isPlaying(guild)) return undefined;
 		let info = Object.assign({}, that.playlists.get(guild.id).playlist.current.info);
 		info.time = that.playlists.get(guild.id).playlist.dispatcher.time;
@@ -401,6 +455,8 @@ class MusicHandler extends EventEmitter {
 	}
 	playlistInfo(guild) {
 		let that = prv(this);
+		if (guild === undefined) throw new Error("parameter 'guild' is undefined");
+		if (!(guild instanceof discord.Guild)) throw new TypeError("'guild' must be a Discord Guild");
 		if (!this.isConnected(guild)) return undefined;
 		let tab = [];
 		for (let music of that.playlists.get(guild.id).playlist.list)
@@ -409,6 +465,8 @@ class MusicHandler extends EventEmitter {
 	}
 	getVolume(guild) {
 		let that = prv(this);
+		if (guild === undefined) throw new Error("parameter 'guild' is undefined");
+		if (!(guild instanceof discord.Guild)) throw new TypeError("'guild' must be a Discord Guild");
 		if (!this.isConnected(guild)) return undefined;
 		return that.playlists.get(guild.id).playlist.volume;
 	}
@@ -419,44 +477,32 @@ class Playlist {
 		prv(this).handler = handler;
 		prv(this).playlist = playlist;
 	}
-	leave() {
-		return prv(this).handler.leave(prv(this).playlist.guild);
+	get guild() {
+		return prv(this).playlist.guild;
 	}
-	addMusic(request, member, options) {
-		return prv(this).handler.addMusic(request, member, options);
+	get connected() {
+		return prv(this).handler.isConnected(this.guild);
 	}
-	removeMusic(index) {
-		return prv(this).handler.removeMusic(prv(this).playlist.guild, index);
+	get playing() {
+		return prv(this).handler.isPlaying(this.guild);
 	}
 	get paused() {
 		return prv(this).playlist.paused;
 	}
-	pause() {
-		return prv(this).handler.pause(prv(this).playlist.guild);
+	get current() {
+		return prv(this).handler.currentInfo(this.guild);
 	}
-	resume() {
-		return prv(this).handler.resume(prv(this).playlist.guild);
+	get info() {
+		return prv(this).handler.playlistInfo(this.guild);
 	}
-	togglePaused() {
-		return prv(this).handler.togglePaused(prv(this).playlist.guild);
+	get joinedAt() {
+		return new Date(this.joinedTimestamp);
 	}
-	clear() {
-		return prv(this).handler.clearPlaylist(prv(this).playlist.guild);
-	}
-	shuffle() {
-		return prv(this).handler.shufflePlaylist(prv(this).playlist.guild);
-	}
-	playNext() {
-		return prv(this).handler.playNext(prv(this).playlist.guild);
+	get joinedTimestamp() {
+		return prv(this).playlist.joinedTimestamp;
 	}
 	get volume() {
 		return prv(this).playlist.volume;
-	}
-	setVolume(newn) {
-		return prv(this).handler.setVolume(prv(this).playlist.guild, newv);
-	}
-	set volume(newv) {
-		this.setVolume(newn);
 	}
 	get looping() {
 		return prv(this).playlist.looping;
@@ -464,32 +510,44 @@ class Playlist {
 	get playlistLooping() {
 		return prv(this).playlist.pllooping;
 	}
+	set volume(newv) {
+		this.setVolume(newn);
+	}
+	leave() {
+		return prv(this).handler.leave(this.guild);
+	}
+	addMusic(request, member, options) {
+		return prv(this).handler.addMusic(request, member, options);
+	}
+	removeMusic(index) {
+		return prv(this).handler.removeMusic(this.guild, index);
+	}
+	playNext() {
+		return prv(this).handler.playNext(this.guild);
+	}
+	pause() {
+		return prv(this).handler.pause(this.guild);
+	}
+	resume() {
+		return prv(this).handler.resume(this.guild);
+	}
+	togglePaused() {
+		return prv(this).handler.togglePaused(this.guild);
+	}
+	clear() {
+		return prv(this).handler.clearPlaylist(this.guild);
+	}
+	shuffle() {
+		return prv(this).handler.shufflePlaylist(this.guild);
+	}
+	setVolume(newn) {
+		return prv(this).handler.setVolume(this.guild, newv);
+	}
 	toggleLooping() {
-		return prv(this).handler.toggleLooping(prv(this).playlist.guild);
+		return prv(this).handler.toggleLooping(this.guild);
 	}
 	togglePlaylistLooping() {
-		return prv(this).handler.togglePlaylistLooping(prv(this).playlist.guild);
-	}
-	get guild() {
-		return prv(this).playlist.guild;
-	}
-	get connected() {
-		return prv(this).handler.isConnected(prv(this).playlist.guild);
-	}
-	get playing() {
-		return prv(this).handler.isPlaying(prv(this).playlist.guild);
-	}
-	get current() {
-		return prv(this).handler.currentInfo(prv(this).playlist.guild);
-	}
-	get info() {
-		return prv(this).handler.playlistInfo(prv(this).playlist.guild);
-	}
-	get joinedAt() {
-		return new Date(prv(this).playlist.joinedTimestamp);
-	}
-	get JoinedTimestamp() {
-		return prv(this).playlist.joinedTimestamp;
+		return prv(this).handler.togglePlaylistLooping(this.guild);
 	}
 }
 
@@ -507,12 +565,12 @@ class InternalPlaylist extends EventEmitter {
 		this.leaving = false;
 		this.handler = handler;
 		this.joinedTimestamp = Date.now();
-
 	}
 	get simplified() {
 		return new Playlist(this.handler, this);
 	}
 	async addMusic(music) {
+		music._playlist = this;
 		this.list.push(music);
 		await sleep(500);
 		if (!this.playing)
@@ -555,7 +613,7 @@ class InternalPlaylist extends EventEmitter {
 }
 
 class Music {
-	constructor(link, member, passes, file, playlist) {
+	constructor(link, member, passes, file) {
 		this.link = link;
 		if (file) {
 			this.title = this.link.split("/").pop();
@@ -564,7 +622,6 @@ class Music {
 		this.member = member;
 		this.passes = passes;
 		this.file = file;
-		prv(this).playlist = playlist;
 	}
 	play() {
 		if (!this.file) {
@@ -574,10 +631,10 @@ class Music {
 				return playSoundcloud(this.member.guild.voiceConnection, this.link, this.passes);
 		}
 		else
-			return this.member.guild.voiceConnection.playFile(this.link, {passes: this.passes, bitrate:"auto"});
+			return this.member.guild.voiceConnection.playFile(this.link, {passes: this.passes, bitrate: "auto"});
 	}
 	get playlist() {
-		return prv(this).playlist.simplified;
+		return this._playlist.simplified;
 	}
 	get info() {
 		if (!this.file) {
@@ -595,7 +652,8 @@ class Music {
 					file: false,
 					website: "Youtube",
 					member: this.member,
-					props: Object.freeze(this.props)
+					props: Object.freeze(this.props),
+					playlist: this.playlist
 				});
 			}
 		} else {
@@ -606,7 +664,8 @@ class Music {
 				time: 0,
 				file: true,
 				member: this.member,
-				props: this.props
+				props: this.props,
+				playlist: this.playlist
 			});
 		}
 	}

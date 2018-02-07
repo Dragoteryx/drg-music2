@@ -1,26 +1,54 @@
 {
-  "name": "drg-music2",
-  "version": "1.0.0",
-  "description": "Updated version of drg-music.",
-  "main": "music.js",
+  "_from": "drg-music2",
+  "_id": "drg-music2@1.0.0",
+  "_inBundle": false,
+  "_integrity": "sha512-uVszc5IZzfv6F+dzANACCYwvhK9CEul9n+2rLpi/kBpNZvrAVqZNwK2RfpZIndAO+mG+RK0BrftXR58O1EDlDw==",
+  "_location": "/drg-music2",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "drg-music2",
+    "name": "drg-music2",
+    "escapedName": "drg-music2",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/drg-music2/-/drg-music2-1.0.0.tgz",
+  "_shasum": "6db1499ae38f44702f2a0c0bc3524b2deeba6831",
+  "_spec": "drg-music2",
+  "_where": "C:\\Users\\Greg\\OneDrive\\Documents\\JAVASCRIPT\\DraBOTeryx\\bot",
+  "author": {
+    "name": "Dragoteryx"
+  },
+  "bugs": {
+    "url": "https://github.com/Dragoteryx/drg-music2/issues"
+  },
+  "bundleDependencies": false,
   "dependencies": {
     "discord.js": "^11.3.0",
     "fs": "0.0.1-security",
     "musicmetadata": "^2.0.5",
     "youtube-search": "^1.0.10",
-    "ytdl-core": "^0.18.1"
+    "ytdl-core": "^0.20.1"
   },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "deprecated": false,
+  "description": "Updated version of drg-music.",
+  "homepage": "https://github.com/Dragoteryx/drg-music2#readme",
+  "license": "ISC",
+  "main": "music.js",
+  "name": "drg-music2",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Dragoteryx/drg-music2.git"
   },
-  "author": "Dragoteryx",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Dragoteryx/drg-music2/issues"
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "homepage": "https://github.com/Dragoteryx/drg-music2#readme"
+  "version": "1.1.0"
 }
