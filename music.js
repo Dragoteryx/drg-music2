@@ -104,32 +104,37 @@ class DeprecationWarning extends Error {
 class MusicHandler extends EventEmitter {
 	constructor(client) {
 		super();
+		let that = prv(this);
+		that.ready = new Map();
 		if (client === undefined)
 			throw new Error("parameter 'client' is undefined");
 		if (!(client instanceof discord.Client))
 			throw new TypeError("'client' must be a Discord Client");
 		client.musicHandler = this;
 		client.on("voiceStateUpdate", (oldMember, newMember) => {
-			let musicChannel = newMember.guild.me.voiceChannel;
-			if (musicChannel === undefined) return;
-			try {
-				if (oldMember.voiceChannel === undefined && newMember.voiceChannel.id == musicChannel.id)
-					this.emit("memberJoin", newMember, musicChannel);
-			} catch(err) {null}
-			try {
-				if (oldMember.voiceChannel.id != musicChannel.id && newMember.voiceChannel.id == musicChannel.id)
-					this.emit("memberJoin", newMember, musicChannel);
-			} catch(err) {null}
-			try {
-				if (oldMember.voiceChannel.id == musicChannel.id && newMember.voiceChannel === undefined)
-					this.emit("memberLeave", newMember, musicChannel);
-			} catch(err) {null}
-			try {
-				if (oldMember.voiceChannel.id == musicChannel.id && newMember.voiceChannel.id != musicChannel.id)
-					this.emit("memberLeave", newMember, musicChannel);
-			} catch(err) {null}
+			let musicChannel = oldMember.guild.me.voiceChannel;
+			if (oldMember.user.id == client.user.id) {
+				if (that.ready.has(oldMember.guild.id))
+					this.emit("clientMoved", oldMember.voiceChannel, newMember.voiceChannel);
+			} else {
+				try {
+					if (oldMember.voiceChannel === undefined && newMember.voiceChannel.id == musicChannel.id)
+						this.emit("memberJoin", newMember, newMember.voiceChannel);
+				} catch(err) {null}
+				try {
+					if (oldMember.voiceChannel.id != musicChannel.id && newMember.voiceChannel.id == musicChannel.id)
+						this.emit("memberJoin", newMember, newMember.voiceChannel);
+				} catch(err) {null}
+				try {
+					if (oldMember.voiceChannel.id == musicChannel.id && newMember.voiceChannel === undefined)
+						this.emit("memberLeave", newMember, oldMember.voiceChannel);
+				} catch(err) {null}
+				try {
+					if (oldMember.voiceChannel.id == musicChannel.id && newMember.voiceChannel.id != musicChannel.id)
+						this.emit("memberLeave", newMember, oldMember.voiceChannel);
+				} catch(err) {null}
+			}
 		});
-		let that = prv(this);
 		that.client = client;
 		that.playlists = new Map();
 	}
@@ -185,7 +190,11 @@ class MusicHandler extends EventEmitter {
 				that.playlists.get(voiceChannel.guild.id).playlist.on("end", (guild, music) => {
 					this.emit("end", that.playlists.get(voiceChannel.guild.id).playlist.simplified, music);
 				});
-				resolve(voiceChannel.join());
+				let joinPromise = voiceChannel.join();
+				joinPromise.then(() => {
+					that.ready.set(tojoin.guild.id, true);
+				});
+				resolve(joinPromise);
 			}
 		});
 	}
@@ -196,10 +205,11 @@ class MusicHandler extends EventEmitter {
 			else if (!(guild instanceof discord.Guild)) reject(new TypeError("'guild' must be a Discord Guild"));
 			else if (!this.isConnected(guild)) reject(new MusicError("the client is not in a voice channel"));
 			else {
-				guild.playlist = undefined;
+				delete guild.playlist;
 				that.playlists.get(guild.id).playlist.leaving = true;
 				that.playlists.get(guild.id).playlist.reset();
 				that.playlists.delete(guild.id);
+				that.ready.delete(guild.id);
 				guild.me.voiceChannel.leave();
 				resolve();
 			}
@@ -252,8 +262,10 @@ class MusicHandler extends EventEmitter {
 					else {
 						queryYoutube(request, options.apiKey).then(link => {
 							if (link === undefined) reject(new MusicError("no query results"));
-							options.type = "link";
-							resolve(this.addMusic(link, member, options));
+							else {
+								options.type = "link";
+								resolve(this.addMusic(link, member, options));
+							}
 						}).catch(reject);
 					}
 		    } else if (options.type == "file") {
@@ -411,7 +423,7 @@ class MusicHandler extends EventEmitter {
 			else if (volume === undefined) reject(new Error("parameter 'volume' is undefined"));
 			else if (typeof volume != "number") reject(new TypeError("'volume' must be a Number"));
 			else if (!this.isConnected(guild)) reject(new MusicError("the client is not in a voice channel"));
-			else if (volume < 0) reject(new MusicError("invalidVolume"));
+			else if (volume < 0) reject(new MusicError("volume < 0"));
 			else {
 				let old = this.getVolume(guild);
 				that.playlists.get(guild.id).playlist.volume = volume;
@@ -448,7 +460,8 @@ class MusicHandler extends EventEmitter {
 		let that = prv(this);
 		if (guild === undefined) throw new Error("parameter 'guild' is undefined");
 		if (!(guild instanceof discord.Guild)) throw new TypeError("'guild' must be a Discord Guild");
-		if (!this.isPlaying(guild)) return undefined;
+		if (!this.isConnected(guild)) return undefined;
+		if (!this.isPlaying(guild)) return null;
 		let info = Object.assign({}, that.playlists.get(guild.id).playlist.current.info);
 		info.time = that.playlists.get(guild.id).playlist.dispatcher.time;
 		return Object.freeze(info);
@@ -469,6 +482,15 @@ class MusicHandler extends EventEmitter {
 		if (!(guild instanceof discord.Guild)) throw new TypeError("'guild' must be a Discord Guild");
 		if (!this.isConnected(guild)) return undefined;
 		return that.playlists.get(guild.id).playlist.volume;
+	}
+
+	//---------
+	inspect() {
+		return {
+			client: this.client,
+			guilds: this.guilds,
+			playlists: this.playlists
+		}
 	}
 }
 
@@ -549,6 +571,24 @@ class Playlist {
 	togglePlaylistLooping() {
 		return prv(this).handler.togglePlaylistLooping(this.guild);
 	}
+
+	//--------
+	inspect() {
+		let that = prv(this);
+		return {
+			guild: that.playlist.guild,
+			connected: this.connected,
+			playing: this.playing,
+			paused: this.paused,
+			current: this.current,
+			info: this.info,
+			joinedAt: this.joinedAt,
+			joinedTimestamp: this.joinedTimestamp,
+			volume: this.volume,
+			looping: this.looping,
+			playlistLooping: this.playlistLooping
+		}
+	}
 }
 
 class InternalPlaylist extends EventEmitter {
@@ -565,9 +605,7 @@ class InternalPlaylist extends EventEmitter {
 		this.leaving = false;
 		this.handler = handler;
 		this.joinedTimestamp = Date.now();
-	}
-	get simplified() {
-		return new Playlist(this.handler, this);
+		this.simplified = new Playlist(this.handler, this);
 	}
 	async addMusic(music) {
 		music._playlist = this;
@@ -579,7 +617,7 @@ class InternalPlaylist extends EventEmitter {
 	playNext() {
 		if (!this.looping)
 			this.current = this.list.shift();
-		if (this.current !== undefined) {
+		if (this.current !== null) {
 			this.dispatcher = this.current.play();
 			this.playing = true;
 			this.dispatcher.setVolume(this.volume/100.0);

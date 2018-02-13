@@ -1,27 +1,27 @@
 {
-  "_from": "drg-music2",
-  "_id": "drg-music2@1.0.0",
+  "_from": "drg-music2@1.1.0",
+  "_id": "drg-music2@1.1.0",
   "_inBundle": false,
-  "_integrity": "sha512-uVszc5IZzfv6F+dzANACCYwvhK9CEul9n+2rLpi/kBpNZvrAVqZNwK2RfpZIndAO+mG+RK0BrftXR58O1EDlDw==",
+  "_integrity": "sha512-lNJigXJR3BIXOxE+zkxx+nyBJr1QWB9w7oZ9zR9Gal716Ygr5En518HTEzfM6pD0IkU8vIhEUe6BgWuA97xvHA==",
   "_location": "/drg-music2",
   "_phantomChildren": {},
   "_requested": {
-    "type": "tag",
+    "type": "version",
     "registry": true,
-    "raw": "drg-music2",
+    "raw": "drg-music2@1.1.0",
     "name": "drg-music2",
     "escapedName": "drg-music2",
-    "rawSpec": "",
+    "rawSpec": "1.1.0",
     "saveSpec": null,
-    "fetchSpec": "latest"
+    "fetchSpec": "1.1.0"
   },
   "_requiredBy": [
     "#USER",
     "/"
   ],
-  "_resolved": "https://registry.npmjs.org/drg-music2/-/drg-music2-1.0.0.tgz",
-  "_shasum": "6db1499ae38f44702f2a0c0bc3524b2deeba6831",
-  "_spec": "drg-music2",
+  "_resolved": "https://registry.npmjs.org/drg-music2/-/drg-music2-1.1.0.tgz",
+  "_shasum": "71efae2599c9c2052e6d7b920bbc03a7e2737c42",
+  "_spec": "drg-music2@1.1.0",
   "_where": "C:\\Users\\Greg\\OneDrive\\Documents\\JAVASCRIPT\\DraBOTeryx\\bot",
   "author": {
     "name": "Dragoteryx"
@@ -50,5 +50,5 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "version": "1.1.0"
+  "version": "1.2.0"
 }
