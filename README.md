@@ -23,13 +23,13 @@ This module lets you interact with 2 different classes.
 This is the main class.
 
 #### Attributes
-* MusicHandler.client (read-only)
+* MusicHandler.client (read-only) |
   The [Client](https://discord.js.org/#/docs/main/stable/class/Client) used to initialize this MusicHandler.
 
-* MusicHandler.prototype.guilds (getter)
-  A [Collection](https://discord.js.org/#/docs/main/stable/class/Collection) containing all [Guild](https://discord.js.org/#/docs/main/stable/class/Guild)s where the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is currently playing music, mapped by their ID.
+* MusicHandler.prototype.guilds (getter) |
+  <br>A [Collection](https://discord.js.org/#/docs/main/stable/class/Collection) containing all [Guild](https://discord.js.org/#/docs/main/stable/class/Guild)s where the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is currently playing music, mapped by their ID.
 
-* MusicHandler.prototype.playlists (getter)
+* MusicHandler.prototype.playlists (getter) |
   A [Collection](https://discord.js.org/#/docs/main/stable/class/Collection) containing all Playlists from the [Guild](https://discord.js.org/#/docs/main/stable/class/Guild)s where the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is currently playing music, , mapped by the corresponding ID.
 
 #### Methods
