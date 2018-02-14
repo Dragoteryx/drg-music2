@@ -58,7 +58,7 @@ This is the main class.
   <br>``options.type``: 'link', 'ytquery' or 'file'
   <br>``options.passes``: how many times to send the voice packet to reduce packet loss
 
-  Returns: [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)<[MusicInfo]>
+  Returns: [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)<MusicInfo>
 
 * **MusicHandler.prototype.removeMusic**
   ```js
@@ -67,7 +67,9 @@ This is the main class.
   ``guild``: [Guild](https://discord.js.org/#/docs/main/stable/class/Guild)
   <br>``index``: the index of the music in the playlist (starting at 0)
 
-  Returns: [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)<[MusicInfo]>
+  Returns: [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)<MusicInfo>
+
+* Currently redacting.
 
 #### Static methods
 Currently redacting.
