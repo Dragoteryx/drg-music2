@@ -58,10 +58,11 @@ This is the main class.
   ```
   ``request``: Youtube link/Youtube query/path to a local file
   <br>``member``: the [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember) who requested the music
+  <br>``options`` is optional
   <br>``options.type``: 'link', 'ytquery' or 'file'
   <br>``options.passes``: how many times to send the voice packet to reduce packet loss
 
-  Returns: [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)<MusicInfo>
+  Returns: [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<MusicInfo (added music)\>
 
 * **remove**
   ```js
@@ -70,7 +71,7 @@ This is the main class.
   ``guild``: [Guild](https://discord.js.org/#/docs/main/stable/class/Guild)
   <br>``index``: the index of the music in the playlist (starting at 0)
 
-  Returns: [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)<MusicInfo>
+  Returns: [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<MusicInfo (removed music)\>
 
 * **playNext**
 
@@ -128,13 +129,17 @@ This is the main class.
 * ``memberLeave``: emitted when a [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember) leaves a [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) where the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is playing music
   <br>Returns: [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/) and [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember)
 
-* ``start``:
+* ``start``: emitted when the current music starts playing
+  <br>Returns: Playlist and MusicInfo (current music)
 
-* ``end``:
+* ``end``: emitted when the current music ends
+  <br>Returns: Playlist and MusicInfo (current music)
 
-* ``next``:
+* ``next``: emitted when the playlist switches to the next music
+  <br>Returns: Playlist and MusicInfo (next music)
 
-* ``empty``:
+* ``empty``: emitted when switching to the next music and the playlist is empty
+  <br>Returns: Playlist
 
 
 ### Playlist
@@ -142,37 +147,37 @@ This class does not really store information and is more of an alias but in some
 
 #### Attributes
 * **guild** (read-only)
-  <br>[Guild]() represented by this Playlist
+  <br>[Guild](https://discord.js.org/#/docs/main/stable/class/Guild) represented by this Playlist
 
 * **channel** (read-only)
-  <br>[VoiceChannel]() joined by the [Client]()
+  <br>[VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) joined by the [Client](https://discord.js.org/#/docs/main/stable/class/Client)
 
 * **firstJoinedAt** (read-only)
-  <br>[Date]() representing the first time the [Client]() joined a [VoiceChannel]() in this [Guild]()
+  <br>[Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) representing the first time the [Client](https://discord.js.org/#/docs/main/stable/class/Client) joined a [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) in this [Guild](https://discord.js.org/#/docs/main/stable/class/Guild)
 
 * **firstJoinedTimestamp** (read-only)
-  <br>Alias for **firstJoinedAt.getTime()** (read-only)
+  <br>Alias for **firstJoinedAt.getTime()**
 
 * **lastJoinedAt** (read-only)
-  <br>[Date]() representing the last time the [Client]() joined a [VoiceChannel]() in this [Guild]()
+  <br>[Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) representing the last time the [Client](https://discord.js.org/#/docs/main/stable/class/Client) joined a [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) in this [Guild](https://discord.js.org/#/docs/main/stable/class/Guild)
 
 * **lastJoinedTimestamp** (read-only)
-  <br>Alias for **lastJoinedAt.getTime()** (read-only)
+  <br>Alias for **lastJoinedAt.getTime()**
 
 * **connected** (read-only)
-  <br>Whether or not the [Client]() is connected in this [Guild]()
+  <br>Whether or not the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is connected in this [Guild](https://discord.js.org/#/docs/main/stable/class/Guild)
 
 * **playing** (read-only)
-  <br>Whether or not the [Client]() is currently playing music
+  <br>Whether or not the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is currently playing music
 
 * **paused**
-  <br>Whether or not the [Client]() is paused
+  <br>Whether or not the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is paused
 
 * **looping**
-  <br>Whether or not the [Client]() is looping the current music
+  <br>Whether or not the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is looping the current music
 
 * **playlistLooping**
-  <br>Whether or not the [Client]() is looping the Playlist
+  <br>Whether or not the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is looping the Playlist
 
 * **current** (read-only)
   <br>Information about the current music
