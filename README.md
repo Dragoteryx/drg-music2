@@ -34,7 +34,7 @@ This is the main class.
 
 #### Methods
 * **MusicHandler.prototype.join**
-  <br>```js
+  ```js
   music.join(tojoin);
   ```
   ``tojoin``: [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember) or [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) to join
