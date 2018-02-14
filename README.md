@@ -62,3 +62,49 @@ Currently redacting.
 
 #### Methods
 Currently redacting.
+
+## Example
+```js
+const discord = require("discord.js");
+const client = new discord.Client();
+
+const MusicHandler = require("drg-music2");
+const music = new MusicHandler(client);
+
+client.on("message", message => {
+
+  if (message.content == "/join") {
+    if (music.isConnected(message.guild)) {
+      message.reply("I am already connected!");
+      return;
+    }
+    music.join(message.member).then(() => {
+      message.reply("hello!");
+    }).catch(console.error);
+  }
+
+  else if (message.content == "/leave") {
+    if (!music.isConnected(message.guild)) {
+      message.reply("I am not connected!");
+      return;
+    }
+    music.leave(message.guild).then(() => {
+      message.reply("bye!");
+    }).catch(console.error);
+  }
+
+  else if (message.content.startsWith("/request ")) {
+    if (!music.isConnected(message.guild)) {
+      message.reply("I am not connected!");
+      return;
+    }
+    let youtubeLink = message.content.replace("/request ", "");
+    music.addMusic(youtubeLink, message.member).then(added => {
+      message.reply(added.title + " has been added to the playlist.");
+    }).catch(console.error);
+  }
+
+});
+
+client.login("THISISMYAWESOMEBOTTOKEN")
+```
