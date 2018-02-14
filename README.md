@@ -7,33 +7,38 @@ A single file module to easily manage music players using Discord.js.
 ## How to use ?
 You need to create a new MusicHandler.
 ```js
-const MusicHandler = require("drg-music");
+const discord = require("discord.js");
+const client = new discord.Client();
+
+const MusicHandler = require("drg-music2");
 const music = new MusicHandler(client);
 ```
-``client`` represents your Discord.js client (your bot).
 
 Then, you'll need to interact with the MusicHandler you just created.
 
 ## Classes
 This module lets you interact with 2 different classes.
 
-### MusicHandler
-This is the main class. You only to create one.
+### MusicHandler extends [EventEmitter](https://nodejs.org/dist/latest/docs/api/events.html#events_class_eventemitter)
+This is the main class.
 
 #### Attributes
-##### MusicHandler.prototype.client (read-only)
-The Discord.js Client used to initialize this MusicHandler.
+##### MusicHandler.client (read-only)
+The [Client](https://discord.js.org/#/docs/main/stable/class/Client) used to initialize this MusicHandler.
 
-##### MusicHandler.prototype.guilds (read-only)
-A Discord.js Collection containing all guilds joined by the bot, mapped by their ID.
+##### MusicHandler.prototype.guilds (getter)
+A [Collection](https://discord.js.org/#/docs/main/stable/class/Collection) containing all [Guild](https://discord.js.org/#/docs/main/stable/class/Guild)s joined by the bot, mapped by their ID.
 
-##### MusicHandler.prototype.playlists (read-only)
-A Discord.js Collection containing all playlists, mapped by the corresponding Guild ID.
-
-Currently redacting.
+##### MusicHandler.prototype.playlists (getter)
+A [Collection](https://discord.js.org/#/docs/main/stable/class/Collection) containing all Playlists, mapped by the corresponding Guild ID.
 
 #### Methods
-Currently redacting.
+##### MusicHandler.prototype.join
+```js
+music.join([GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember) or [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel));
+```
+
+Returns: [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)<[VoiceConnection](https://discord.js.org/#/docs/main/stable/class/VoiceConnection)>
 
 #### Static methods
 Currently redacting.
