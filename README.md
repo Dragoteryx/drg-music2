@@ -23,14 +23,14 @@ This module lets you interact with 2 different classes.
 This is the main class.
 
 #### Attributes
-##### MusicHandler.client (read-only)
-The [Client](https://discord.js.org/#/docs/main/stable/class/Client) used to initialize this MusicHandler.
+* MusicHandler.client (read-only)
+  The [Client](https://discord.js.org/#/docs/main/stable/class/Client) used to initialize this MusicHandler.
 
-##### MusicHandler.prototype.guilds (getter)
-A [Collection](https://discord.js.org/#/docs/main/stable/class/Collection) containing all [Guild](https://discord.js.org/#/docs/main/stable/class/Guild)s where the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is currently playing music, mapped by their ID.
+* MusicHandler.prototype.guilds (getter)
+  A [Collection](https://discord.js.org/#/docs/main/stable/class/Collection) containing all [Guild](https://discord.js.org/#/docs/main/stable/class/Guild)s where the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is currently playing music, mapped by their ID.
 
-##### MusicHandler.prototype.playlists (getter)
-A [Collection](https://discord.js.org/#/docs/main/stable/class/Collection) containing all Playlists from the [Guild](https://discord.js.org/#/docs/main/stable/class/Guild)s where the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is currently playing music, , mapped by the corresponding Guild ID.
+* MusicHandler.prototype.playlists (getter)
+  A [Collection](https://discord.js.org/#/docs/main/stable/class/Collection) containing all Playlists from the [Guild](https://discord.js.org/#/docs/main/stable/class/Guild)s where the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is currently playing music, , mapped by the corresponding ID.
 
 #### Methods
 ##### MusicHandler.prototype.join
@@ -45,7 +45,8 @@ Returns: [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refer
 Currently redacting.
 
 #### Events
-``clientMoved``: emitted when the [Client](https://discord.js.org/#/docs/main/stable/class/Client) that instantiated this MusicHandler moves from one [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) to another, along with both [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel)s
+``clientMoved``: emitted when the [Client](https://discord.js.org/#/docs/main/stable/class/Client) that instantiated this MusicHandler moves from one [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) to another
+Returns: old [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) and new [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel)
 ``memberJoin``:
 ``memberLeave``:
 ``start``:
