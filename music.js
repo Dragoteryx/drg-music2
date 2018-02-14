@@ -11,10 +11,18 @@ const EventEmitter = require("events");
 
 // GLOBALS
 
-// FUNCTIONS
+// UTIL FUNCTIONS
 function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+function enumerate(proto) {
+	for (let property of Object.getOwnPropertyNames(proto)) {
+		if (property !== "constructor") Object.defineProperty(proto, property, {enumerable: true});
+	}
+}
+
+// FUNCTIONS
 
 function videoWebsite(str) {
 	if (str.startsWith("https://www.youtube.com/watch?v=") || str.startsWith("https://youtu.be/"))
@@ -151,34 +159,25 @@ class MusicHandler extends EventEmitter {
 			}
 		});
 		that.playlists = new Map();
-		Object.defineProperty(this, "client", {
-	    value: client,
-	    enumerable: true
-	  });
-		Object.defineProperty(this, "guilds", {
-			get: () => {
-				let guilds = new discord.Collection();
-				let that = prv(this);
-				let ids = Array.from(that.playlists.keys());
-				for (let id of ids)
-					guilds.set(id, that.playlists.get(id).guild);
-				return guilds;
-			},
-			enumerable: true
-		});
-		Object.defineProperty(this, "playlists", {
-			get: () => {
-				let playlists = new discord.Collection();
-				let that = prv(this);
-				let ids = Array.from(that.playlists.keys());
-				for (let id of ids)
-					playlists.set(id, that.playlists.get(id).playlist.simplified);
-				return playlists;
-			},
-			enumerable: true
-		});
+		this.client = client;
+		Object.defineProperty(this, "client", {writable: false});
 	}
-
+	get guilds() {
+		let guilds = new discord.Collection();
+		let that = prv(this);
+		let ids = Array.from(that.playlists.keys());
+		for (let id of ids)
+			guilds.set(id, that.playlists.get(id).guild);
+		return guilds;
+	}
+	get playlists() {
+		let playlists = new discord.Collection();
+		let that = prv(this);
+		let ids = Array.from(that.playlists.keys());
+		for (let id of ids)
+			playlists.set(id, that.playlists.get(id).playlist.simplified);
+		return playlists;
+	}
 	join(tojoin) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
@@ -205,7 +204,6 @@ class MusicHandler extends EventEmitter {
 				if (playlist.first) {
 					playlist.pl.on("start", (guild, music) => {
 						this.emit("start", playlist.pl.simplified, music);
-						this.emit("start" + voiceChannel.guild.id);
 					});
 					playlist.pl.on("next", (guild, music) => {
 						this.emit("next", playlist.pl.simplified, music);
@@ -225,7 +223,6 @@ class MusicHandler extends EventEmitter {
 			}
 		});
 	}
-
 	leave(guild) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
@@ -242,7 +239,6 @@ class MusicHandler extends EventEmitter {
 			}
 		});
 	}
-
 	addMusic(request, member, options) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
@@ -309,7 +305,6 @@ class MusicHandler extends EventEmitter {
 			}
 		});
 	}
-
 	removeMusic(guild, index) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
@@ -324,7 +319,6 @@ class MusicHandler extends EventEmitter {
 			else resolve(that.playlists.get(guild.id).playlist.list.splice(index, 1)[0].info);
 		});
 	}
-
 	playNext(guild) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
@@ -341,7 +335,6 @@ class MusicHandler extends EventEmitter {
 			}
 		});
 	}
-
 	toggleLooping(guild) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
@@ -357,7 +350,6 @@ class MusicHandler extends EventEmitter {
 			}
 		});
 	}
-
 	togglePlaylistLooping(guild) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
@@ -372,7 +364,6 @@ class MusicHandler extends EventEmitter {
 			}
 		});
 	}
-
 	clearPlaylist(guild) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
@@ -387,7 +378,6 @@ class MusicHandler extends EventEmitter {
 			}
 		});
 	}
-
 	shufflePlaylist(guild) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
@@ -402,7 +392,6 @@ class MusicHandler extends EventEmitter {
 			}
 		});
 	}
-
 	resume(guild) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
@@ -418,7 +407,6 @@ class MusicHandler extends EventEmitter {
 			}
 		});
 	}
-
 	pause(guild) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
@@ -434,7 +422,6 @@ class MusicHandler extends EventEmitter {
 			}
 		});
 	}
-
 	togglePaused(guild) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
@@ -452,7 +439,6 @@ class MusicHandler extends EventEmitter {
 			}
 		});
 	}
-
 	setVolume(guild, volume) {
 		let that = prv(this);
 		return new Promise((resolve, reject) => {
@@ -546,63 +532,50 @@ class MusicHandler extends EventEmitter {
 	}
 }
 
+
+
 class Playlist {
-	constructor(handler, playlist) {
-		let that = prv(this);
-		that.playlist = playlist;
-		Object.defineProperty(this, "guild", {
-			value: that.playlist.guild,
-			enumerable: true
-		});
-		Object.defineProperty(this, "firstJoinedAt", {
-			value: that.playlist.joinedAt,
-			enumerable: true
-		});
-		Object.defineProperty(this, "firstJoinedTimestamp", {
-			value: this.firstJoinedAt.getTime(),
-			enumerable: true
-		});
-		Object.defineProperty(this, "lastJoinedAt", {
-			get: () => that.playlist.joinedAt,
-			enumerable: true
-		});
-		Object.defineProperty(this, "lastJoinedTimestamp", {
-			get: () => this.lastJoinedAt.getTime(),
-			enumerable: true
-		});
-		Object.defineProperty(this, "connected", {
-			get: () => that.playlist.handler.isConnected(this.guild),
-			enumerable: true
-		});
-		Object.defineProperty(this, "playing", {
-			get: () => that.playlist.handler.isPlaying(this.guild),
-			enumerable: true
-		});
-		Object.defineProperty(this, "paused", {
-			get: () => that.playlist.handler.isPaused(this.guild),
-			enumerable: true
-		});
-		Object.defineProperty(this, "current", {
-			get: () => that.playlist.handler.currentInfo(this.guild),
-			enumerable: true
-		});
-		Object.defineProperty(this, "info", {
-			get: () => that.playlist.handler.playlistInfo(this.guild),
-			enumerable: true
-		});
-		Object.defineProperty(this, "looping", {
-			get: () => that.playlist.handler.isLooping(this.guild),
-			enumerable: true
-		});
-		Object.defineProperty(this, "playlistLooping", {
-			get: () => that.playlist.handler.isPlaylistLooping(this.guild),
-			enumerable: true
-		});
-		Object.defineProperty(this, "volume", {
-			get: () => that.playlist.handler.getVolume(this.guild),
-			set: (newv) => that.playlist.handler.setVolume(this.guild, newv),
-			enumerable: true
-		});
+	constructor(playlist) {
+		prv(this).playlist = playlist;
+		this.guild = that.playlist.guild;
+		this.firstJoinedAt = playlist.joinedAt;
+		this.firstJoinedTimestamp = this.firstJoinedAt.getTime();
+		Object.defineProperty(this, "guild", {writable: false});
+		Object.defineProperty(this, "firstJoinedAt", {writable: false});
+		Object.defineProperty(this, "firstJoinedTimestamp", {writable: false});
+	}
+	get lastJoinedAt() {
+		return prv(this).playlist.joinedAt;
+	}
+	get lastJoinedTimestamp() {
+		return this.lastJoinedAt.getTime();
+	}
+	get connected() {
+		return prv(this).playlist.handler.isConnected(this.guild);
+	}
+	get playing() {
+		return prv(this).playlist.handler.isPlaying(this.guild);
+	}
+	get paused() {
+		return prv(this).playlist.handler.isPaused(this.guild);
+	}
+	get current() {
+		return prv(this).playlist.handler.currentInfo(this.guild);
+	}
+	get info() {
+		return prv(this).playlist.handler.playlistInfo(this.guild);
+	}
+	get looping() {
+		return prv(this).playlist.handler.isLooping(this.guild);
+	}
+	get playlistLooping() {
+		return prv(this).playlist.handler.isPlaylistLooping(this.guild);
+	}
+	get volume() {
+		return prv(this).playlist.handler.getVolume(this.guild);
+	}
+	set volume(newv) {
+		return prv(this).playlist.handler.setVolume(this.guild, newv);
 	}
 	leave() {
 		return prv(this).playlist.handler.leave(this.guild);
@@ -652,7 +625,7 @@ class InternalPlaylist extends EventEmitter {
 		this.volume = 100;
 		this.leaving = false;
 		this.joinedAt = new Date();
-		this.simplified = new Playlist(this.handler, this);
+		this.simplified = new Playlist(this);
 	}
 	async addMusic(music) {
 		music._playlist = this;
@@ -761,5 +734,6 @@ MusicHandler.videoWebsite = videoWebsite;
 MusicHandler.playYoutube = playYoutube;
 MusicHandler.youtubeInfo = youtubeInfo;
 MusicHandler.queryYoutube = queryYoutube;
-
+enumerate(MusicHandler.prototype);
+enumerate(Playlist.prototype);
 module.exports = MusicHandler;
