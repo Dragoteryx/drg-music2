@@ -46,14 +46,11 @@ Currently redacting.
 
 #### Events
 *  ``clientMoved``: emitted when the [Client](https://discord.js.org/#/docs/main/stable/class/Client) that instantiated this MusicHandler moves from one [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) to another
-
-  Returns: old [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) and new [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel)
+  <br>Returns: old [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) and new [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel)
 * ``memberJoin``: emitted when a [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember) joins a [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) where the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is playing music
-
-  Returns: [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/) and [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember)
+  <br>Returns: [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/) and [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember)
 * ``memberLeave``: emitted when a [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember) leaves a [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) where the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is playing music
-
-  Returns: [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/) and [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember)
+  <br>Returns: [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/) and [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember)
 * ``start``:
 * ``end``:
 * ``next``:
