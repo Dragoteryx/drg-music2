@@ -537,7 +537,7 @@ class MusicHandler extends EventEmitter {
 class Playlist {
 	constructor(playlist) {
 		prv(this).playlist = playlist;
-		this.guild = that.playlist.guild;
+		this.guild = prv(this).playlist.guild;
 		this.firstJoinedAt = playlist.joinedAt;
 		this.firstJoinedTimestamp = this.firstJoinedAt.getTime();
 		Object.defineProperty(this, "guild", {writable: false});
