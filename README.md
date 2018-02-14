@@ -189,7 +189,7 @@ This class does not really store information and is more of an alias but in some
   <br>The volume at which music is played
 
 #### Methods
-Those methods are just an alias for the methods with the same name in MusicHandler, except you don't need to precise the guild as a parameter when it is required.
+Those methods are just an alias for the methods with the same name in MusicHandler, except you don't need to precise the guild as a parameter when it is required. Example: ``music.shuffle(guild) <==> music.playlists.get(guild.id).shuffle()``
 
 * **join**
   <br>Alias for **MusicHandler.prototype.join**
