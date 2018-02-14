@@ -37,9 +37,35 @@ This is the main class.
   ```js
   music.join(tojoin);
   ```
-  ``tojoin``: [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember) or [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) to join
+  ``tojoin``: the [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember) or [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) to join
 
   Returns: [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)<[VoiceConnection](https://discord.js.org/#/docs/main/stable/class/VoiceConnection)>
+
+* **MusicHandler.prototype.leave**
+  ```js
+  music.leave(guild);
+  ```
+  ``guild``: the [Guild](https://discord.js.org/#/docs/main/stable/class/Guild) to leave
+
+  Returns: [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)
+
+* **MusicHandler.prototype.addMusic**
+  ```js
+  music.addMusic(request, member, options);
+  ```
+  ``request``: Youtube link/Youtube query/path to a local file
+  <br>``member``: the [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember) who requested the music
+  <br>``options.type``: 'link', 'ytquery' or 'file'
+  <br>``options.passes``: how many times to send the voice packet to reduce packet loss
+
+  Returns: [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)<MusicInfo>
+
+* **MusicHandler.prototype.removeMusic**
+  ```js
+  music.removeMusic(guild, index);
+  ```
+  ``guild``: [Guild](https://discord.js.org/#/docs/main/stable/class/Guild)
+  <br>``index``: the index of the music in the playlist (starting at 0)
 
 #### Static methods
 Currently redacting.
