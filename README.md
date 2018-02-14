@@ -51,9 +51,9 @@ Currently redacting.
 * ``memberJoin``: emitted when a [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember) joins a [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) where the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is playing music
 
   Returns: [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/) and [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember)
-  * ``memberLeave``: emitted when a [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember) leaves a [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) where the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is playing music
+* ``memberLeave``: emitted when a [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember) leaves a [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) where the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is playing music
 
-    Returns: [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/) and [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember)
+  Returns: [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/) and [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember)
 * ``start``:
 * ``end``:
 * ``next``:
