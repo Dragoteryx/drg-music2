@@ -27,22 +27,31 @@ This is the main class.
 The [Client](https://discord.js.org/#/docs/main/stable/class/Client) used to initialize this MusicHandler.
 
 ##### MusicHandler.prototype.guilds (getter)
-A [Collection](https://discord.js.org/#/docs/main/stable/class/Collection) containing all [Guild](https://discord.js.org/#/docs/main/stable/class/Guild)s joined by the bot, mapped by their ID.
+A [Collection](https://discord.js.org/#/docs/main/stable/class/Collection) containing all [Guild](https://discord.js.org/#/docs/main/stable/class/Guild)s where the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is currently playing music, mapped by their ID.
 
 ##### MusicHandler.prototype.playlists (getter)
-A [Collection](https://discord.js.org/#/docs/main/stable/class/Collection) containing all Playlists, mapped by the corresponding Guild ID.
+A [Collection](https://discord.js.org/#/docs/main/stable/class/Collection) containing all Playlists from the [Guild](https://discord.js.org/#/docs/main/stable/class/Guild)s where the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is currently playing music, , mapped by the corresponding Guild ID.
 
 #### Methods
 ##### MusicHandler.prototype.join
 ```js
-music.join(toJoin);
+music.join(tojoin);
 ```
-``toJoin``: [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember) or [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) to join
+``tojoin``: [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember) or [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) to join
 
 Returns: [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)<[VoiceConnection](https://discord.js.org/#/docs/main/stable/class/VoiceConnection)>
 
 #### Static methods
 Currently redacting.
+
+#### Events
+``clientMoved``: emitted when the [Client](https://discord.js.org/#/docs/main/stable/class/Client) that instantiated this MusicHandler moves from one [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) to another, along with both [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel)s
+``memberJoin``:
+``memberLeave``:
+``start``:
+``end``:
+``next``:
+``empty``:
 
 ### Playlist
 Currently redacting.
