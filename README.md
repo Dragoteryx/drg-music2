@@ -35,8 +35,9 @@ A [Collection](https://discord.js.org/#/docs/main/stable/class/Collection) conta
 #### Methods
 ##### MusicHandler.prototype.join
 ```js
-music.join([GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember) or [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel));
+music.join(toJoin);
 ```
+``toJoin``: [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember) or [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) to join
 
 Returns: [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)<[VoiceConnection](https://discord.js.org/#/docs/main/stable/class/VoiceConnection)>
 
