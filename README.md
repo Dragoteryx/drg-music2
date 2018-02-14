@@ -2,7 +2,7 @@
 ![Drg Music 2](https://nodei.co/npm/drg-music2.png?downloads=true&stars=true)
 
 
-A single file module to easily manage music players using Discord.js.
+A simple to use framework to create and manage music playlists for Discord using [discord.js](https://github.com/discordjs/discord.js).
 
 ## How to use ?
 You need to create a new MusicHandler.
@@ -23,17 +23,20 @@ This module lets you interact with 2 different classes.
 This is the main class.
 
 #### Attributes
-* **MusicHandler.client** (read-only)
+* **client** (read-only)
   <br>The [Client](https://discord.js.org/#/docs/main/stable/class/Client) used to initialize this MusicHandler.
 
-* **MusicHandler.prototype.guilds** (getter)
+* **guilds**
   <br>A [Collection](https://discord.js.org/#/docs/main/stable/class/Collection) containing all [Guild](https://discord.js.org/#/docs/main/stable/class/Guild)s where the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is currently playing music, mapped by their ID.
 
-* **MusicHandler.prototype.playlists** (getter)
+* **channels**
+  <br>A [Collection](https://discord.js.org/#/docs/main/stable/class/Collection) containing all [Guild](https://discord.js.org/#/docs/main/stable/class/Guild)s where the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is currently playing music, mapped by their ID.
+
+* **playlists**
   <br>A [Collection](https://discord.js.org/#/docs/main/stable/class/Collection) containing all Playlists from the [Guild](https://discord.js.org/#/docs/main/stable/class/Guild)s where the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is currently playing music, , mapped by the corresponding ID.
 
 #### Methods
-* **MusicHandler.prototype.join**
+* **join**
   ```js
   music.join(tojoin);
   ```
@@ -41,7 +44,7 @@ This is the main class.
 
   Returns: [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)<[VoiceConnection](https://discord.js.org/#/docs/main/stable/class/VoiceConnection)>
 
-* **MusicHandler.prototype.leave**
+* **leave**
   ```js
   music.leave(guild);
   ```
@@ -49,9 +52,9 @@ This is the main class.
 
   Returns: [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)
 
-* **MusicHandler.prototype.addMusic**
+* **add**
   ```js
-  music.addMusic(request, member, options);
+  music.add(request, member, options);
   ```
   ``request``: Youtube link/Youtube query/path to a local file
   <br>``member``: the [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember) who requested the music
@@ -60,22 +63,63 @@ This is the main class.
 
   Returns: [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)<MusicInfo>
 
-* **MusicHandler.prototype.removeMusic**
+* **remove**
   ```js
-  music.removeMusic(guild, index);
+  music.remove(guild, index);
   ```
   ``guild``: [Guild](https://discord.js.org/#/docs/main/stable/class/Guild)
   <br>``index``: the index of the music in the playlist (starting at 0)
 
   Returns: [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)<MusicInfo>
 
-* Currently redacting.
+* **playNext**
+
+* **skip**
+  <br>Alias for **playNext**
+
+* **clear**
+
+* **shuffle**
+
+* **resume**
+
+* **pause**
+
+* **togglePaused**
+
+* **toggleLooping**
+
+* **togglePlaylistLooping**
+
+* **getVolume**
+
+* **setVolume**
+
+* **isConnected**
+
+* **isPlaying**
+
+* **isPaused**
+
+* **isLooping**
+
+* **isPlaylistLooping**
+
+* **currentInfo**
+
+* **playlistInfo**
 
 #### Static methods
-Currently redacting.
+* **videoWebsite**
+
+* **playYoutube**
+
+* **youtubeInfo**
+
+* **queryYoutube**
 
 #### Events
-*  ``clientMoved``: emitted when the [Client](https://discord.js.org/#/docs/main/stable/class/Client) that instantiated this MusicHandler moves from one [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) to another
+*  ``clientMove``: emitted when the [Client](https://discord.js.org/#/docs/main/stable/class/Client) that instantiated this MusicHandler moves from one [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) to another
   <br>Returns: old [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) and new [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel)
 
 * ``memberJoin``: emitted when a [GuildMember](https://discord.js.org/#/docs/main/stable/class/GuildMember) joins a [VoiceChannel](https://discord.js.org/#/docs/main/stable/class/VoiceChannel) where the [Client](https://discord.js.org/#/docs/main/stable/class/Client) is playing music
@@ -94,13 +138,77 @@ Currently redacting.
 
 
 ### Playlist
-Currently redacting.
+This class does not really store information and is more of an alias but in some cases it can be useful.
 
 #### Attributes
-Currently redacting.
+* **guild** (read-only)
+  <br>[Guild]() represented by this Playlist
+
+* **channel** (read-only)
+  <br>[VoiceChannel]() joined by the [Client]()
+
+* **firstJoinedAt** (read-only)
+  <br>[Date]() representing the first time the [Client]() joined a [VoiceChannel]() in this [Guild]()
+
+* **firstJoinedTimestamp** (read-only)
+  <br>Alias for **firstJoinedAt.getTime()** (read-only)
+
+* **lastJoinedAt** (read-only)
+  <br>[Date]() representing the last time the [Client]() joined a [VoiceChannel]() in this [Guild]()
+
+* **lastJoinedTimestamp** (read-only)
+  <br>Alias for **lastJoinedAt.getTime()** (read-only)
+
+* **connected** (read-only)
+  <br>Whether or not the [Client]() is connected in this [Guild]()
+
+* **playing** (read-only)
+  <br>Whether or not the [Client]() is currently playing music
+
+* **paused**
+  <br>Whether or not the [Client]() is paused
+
+* **looping**
+  <br>Whether or not the [Client]() is looping the current music
+
+* **playlistLooping**
+  <br>Whether or not the [Client]() is looping the Playlist
+
+* **current** (read-only)
+  <br>Information about the current music
+
+* **info** (read-only)
+  <br>Information about all the musics in this Playlist
+
+* **volume**
+  <br>The volume at which music is played
 
 #### Methods
-Currently redacting.
+Those methods are just an alias for the methods with the same name in MusicHandler, except you don't need to precise the guild as a parameter when it is required.
+
+* **join**
+  <br>Alias for **MusicHandler.prototype.join**
+
+* **leave**
+  <br>Alias for **MusicHandler.prototype.leave**
+
+* **add**
+  <br>Alias for **MusicHandler.prototype.add**
+
+* **remove**
+  <br>Alias for **MusicHandler.prototype.remove**
+
+* **playNext**
+  <br>Alias for **MusicHandler.prototype.playNext**
+
+* **skip**
+  <br>Alias for **MusicHandler.prototype.skip**
+
+* **clear**
+  <br>Alias for **MusicHandler.prototype.clear**
+
+* **shuffle**
+  <br>Alias for **MusicHandler.prototype.shuffle**
 
 ## Example
 ```js
@@ -138,7 +246,7 @@ client.on("message", message => {
       return;
     }
     let youtubeLink = message.content.replace("/request ", "");
-    music.addMusic(youtubeLink, message.member).then(added => {
+    music.add(youtubeLink, message.member).then(added => {
       message.reply(added.title + " has been added to the playlist!");
     }).catch(console.error);
   }
