@@ -297,7 +297,7 @@ class MusicHandler extends EventEmitter {
 							if (link === undefined) reject(new MusicError("no query results"));
 							else {
 								options.type = "link";
-								resolve(this.addMusic(link, member, options));
+								resolve(this.add(link, member, options));
 							}
 						}).catch(reject);
 					}
@@ -307,7 +307,7 @@ class MusicHandler extends EventEmitter {
 						music.length = Math.round(info.duration*1000);
 						if (options.props !== undefined)
 							music.props = options.props;
-						that.playlists.get(member.guild.id).playlist.addMusic(music);
+						that.playlists.get(member.guild.id).playlist.add(music);
 						resolve(music.info);
 					}).catch(reject);
 		    } else reject(new MusicError("options.type => '" + options.type + "' is not a valid option ('link', 'ytquery' or 'file')"));
@@ -712,6 +712,7 @@ class InternalPlaylist extends EventEmitter {
 		this.current = undefined;
 		this.looping = false;
 		this.pllooping = false;
+		this.list = [];
 	}
 }
 
