@@ -278,7 +278,7 @@ class MusicHandler extends EventEmitter {
 							music.keywords = info.keywords;
 			        if (options.props !== undefined)
 								music.props = options.props;
-							that.playlists.get(member.guild.id).playlist.addMusic(music);
+							that.playlists.get(member.guild.id).playlist.add(music);
 							resolve(music.info);
 						}).catch(err => {
 							if (err.message.includes("TypeError: Video id (") && err.message.includes(") does not match expected format (/^[a-zA-Z0-9-_]{11}$/)"))
@@ -672,7 +672,7 @@ class InternalPlaylist extends EventEmitter {
 		this.joinedAt = new Date();
 		this.simplified = new Playlist(this);
 	}
-	async addMusic(music) {
+	async add(music) {
 		music._playlist = this;
 		this.list.push(music);
 		await sleep(500);
